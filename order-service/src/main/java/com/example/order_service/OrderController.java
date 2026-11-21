@@ -3,7 +3,7 @@ package com.example.order_service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
-
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
