@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -32,7 +31,20 @@
         Tải danh sách sản phẩm
     </button>
 
+    <input type="text" id="searchName" placeholder="Tìm theo tên">
+    <button onclick="searchByName()">
+        Tìm theo tên
+    </button>
+
     <ul id="productList"></ul>
+
+    <h2>Thêm sản phẩm mới</h2>
+
+    <input type="text" id="newName" placeholder="Tên sản phẩm">
+    <input type="number" id="newPrice" placeholder="Giá sản phẩm" min="0">
+    <button onclick="addProduct()">
+        Thêm sản phẩm
+    </button>
 
     <h2>Tìm sản phẩm thông qua Order Service</h2>
 
@@ -65,9 +77,99 @@
                 products.forEach(product => {
                     const li = document.createElement("li");
                     li.textContent =
-                        `${product.id} - ${product.name}`;
+                        `${product.id} - ${product.name} (${product.price}đ) `;
+
+                    const btn = document.createElement("button");
+                    btn.textContent = "Xóa";
+                    btn.onclick = () => deleteProduct(product.id);
+
+                    li.appendChild(btn);
                     list.appendChild(li);
                 });
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        // Tìm theo tên
+        async function searchByName() {
+            const name = document.getElementById("searchName").value;
+
+            try {
+                const response = await fetch(
+                    `http://localhost:8081/api/products/search?name=${encodeURIComponent(name)}`
+                );
+
+                if (!response.ok) {
+                    throw new Error("Không tìm thấy sản phẩm");
+                }
+
+                const products = await response.json();
+                const list = document.getElementById("productList");
+
+                list.innerHTML = "";
+
+                products.forEach(product => {
+                    const li = document.createElement("li");
+                    li.textContent =
+                        `${product.id} - ${product.name} (${product.price}đ) `;
+
+                    const btn = document.createElement("button");
+                    btn.textContent = "Xóa";
+                    btn.onclick = () => deleteProduct(product.id);
+
+                    li.appendChild(btn);
+                    list.appendChild(li);
+                });
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        // Thêm sản phẩm
+        async function addProduct() {
+            const nameInput = document.getElementById("newName");
+            const priceInput = document.getElementById("newPrice");
+            const name = nameInput.value.trim();
+            const price = Number(priceInput.value);
+
+            if (!name || priceInput.value === "" || price < 0) {
+                alert("Vui lòng nhập tên và giá hợp lệ");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:8081/api/products", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, price })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Không thể thêm sản phẩm");
+                }
+
+                nameInput.value = "";
+                priceInput.value = "";
+                loadProducts();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        // Xóa sản phẩm
+        async function deleteProduct(id) {
+            try {
+                const response = await fetch(
+                    `http://localhost:8081/api/products/${id}`,
+                    { method: "DELETE" }
+                );
+
+                if (!response.ok) {
+                    throw new Error("Không thể xóa sản phẩm");
+                }
+
+                loadProducts();
             } catch (error) {
                 alert(error.message);
             }
